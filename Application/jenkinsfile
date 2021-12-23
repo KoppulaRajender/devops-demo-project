@@ -9,13 +9,13 @@ pipeline {
                 '''
             }
         }
-
-        stage ('Building Jar') {
+        stage ('BuildingJar') {
             steps {
                 sh 'mvn clean package -f Application/pom.xml'
                 sh 'ls -ltr Application/target/'
             }
-        stage ('Building Docker Image')
+        }
+        stage ('Building Docker Image'){
             steps {
                 cd Application/
                 sh 'docker build -t app:v1 .'
