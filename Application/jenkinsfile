@@ -17,8 +17,9 @@ pipeline {
         }
         stage ('Building Docker Image'){
             steps {
-                sh 'cd Application && docker build -t app:v1 .'
-                sh 'docker images'
+                sh 'cd Application && docker build -t koppula18/japp:v1 .'
+                sh 'docker login -u koppula18 -p Raju@007'
+                sh 'docker push koppula18/japp:v1'
             }
         }
     }

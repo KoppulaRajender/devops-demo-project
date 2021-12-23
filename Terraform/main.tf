@@ -240,9 +240,11 @@ resource "aws_instance" "jenkins" {
       "yes | sudo pip3 install ansible",
       "sudo amazon-linux-extras install docker -y",
       "sudo service docker start",
-      " sudo usermod -aG docker $USER",
+      "sudo usermod -aG docker $USER",
+      "sudo usermod -aG docker jenkins",
       "sudo systemctl enable docker.service",
       "sudo systemctl enable containerd.service",
+      "sudo service docker restart",
     ]
   }
   connection {
