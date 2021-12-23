@@ -13,7 +13,7 @@ pipeline {
         stage ('Build') {
             steps {
                 sh 'mvn clean package -f Application/pom.xml'
-                sh 'ls -ltr target/'
+                sh 'ls -ltr Application/target/'
             }
             post {
                 success {
