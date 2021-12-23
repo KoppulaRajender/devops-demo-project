@@ -1,0 +1,20 @@
+--- 
+- hosts: appserver
+  name: "Deploying Petclic Application"
+  tasks: 
+    - docker_container: 
+        image: "{{ petclinic_image }}:{{ petclinic_tag }}"
+        name: petclinic
+        ports: 
+          - "{{ petclinic_host_port }}:{{ petclinic_container_port }}"
+        pull: true
+        read_only: true
+        recreate: "yes"
+        restart_policy: always
+        state: started
+      name: "Start petclinic java container"
+  vars: 
+    petclinic_container_port: 8080
+    petclinic_host_port: 8081
+    petclinic_image: koppula18/petclinic
+    petclinic_tag: 13
