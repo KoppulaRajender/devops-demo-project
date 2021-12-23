@@ -16,9 +16,7 @@ pipeline {
 
         stage ('Build') {
             steps {
-                sh 'mvn -Dmaven.test.failure.ignore=true install'
-		# sh 'mvn package'
-		# sh 'java -jar /target/*.war' 
+                sh 'mvn -Dmaven.test.failure.ignore=true package'
             }
             post {
                 success {
