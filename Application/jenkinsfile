@@ -12,8 +12,7 @@ pipeline {
 
         stage ('Build') {
             steps {
-                sh 'cd Application/'
-                sh 'mvn clean package'
+                sh 'mvn clean package -f Application/pom.xml'
                 sh 'ls -ltr target/'
             }
             post {
