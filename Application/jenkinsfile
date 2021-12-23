@@ -10,15 +10,16 @@ pipeline {
             }
         }
 
-        stage ('Build') {
+        stage ('Building Jar') {
             steps {
                 sh 'mvn clean package -f Application/pom.xml'
                 sh 'ls -ltr Application/target/'
             }
-            post {
-                success {
-                    junit 'target/surefire-reports/**/*.xml' 
-                }
+        stage ('Building Docker Image')
+            steps {
+                cd Application/
+                sh 'docker build -t app:v1 .'
+                sh 'docker images'
             }
         }
     }
