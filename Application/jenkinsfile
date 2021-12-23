@@ -17,8 +17,7 @@ pipeline {
         }
         stage ('Building Docker Image'){
             steps {
-                sh 'cd Application/'
-                sh 'docker build -t app:v1 .'
+                sh 'docker build -t app:v1 Application/Dockerfile'
                 sh 'docker images'
             }
         }
