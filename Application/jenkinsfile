@@ -12,8 +12,9 @@ pipeline {
 
         stage ('Build') {
             steps {
-                sh 'ls -ltr'
+                sh 'cd Application/'
                 sh 'mvn clean package'
+                sh 'ls -ltr target/'
             }
             post {
                 success {
