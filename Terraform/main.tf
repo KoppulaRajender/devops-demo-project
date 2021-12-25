@@ -195,6 +195,17 @@ resource "aws_security_group" "MYAPP-SG" {
     security_groups = [aws_security_group.JENKINS-SG.id]
   }
 
+  # Created an inbound rule for SSH
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+
+    # Here adding tcp instead of ssh, because ssh in part of tcp only!
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     description = "output from MyApp"
     from_port   = 0
@@ -213,7 +224,8 @@ resource "aws_instance" "jenkins" {
     aws_security_group.JENKINS-SG
   ]
 
-  ami           = "ami-0742b4e673072066f"
+  ami           = "ami-0742b4e673072066f" 
+  # amazoon-linux
   instance_type = "t2.micro"
   subnet_id     = aws_subnet.subnet1.id
 
@@ -223,6 +235,13 @@ resource "aws_instance" "jenkins" {
 
   # Security groups to use!
   vpc_security_group_ids = [aws_security_group.JENKINS-SG.id]
+
+  connection {
+    type        = "ssh"
+    host        = self.public_ip
+    user        = "ec2-user"
+    private_key = file("~/.ssh/id_rsa")
+  }
 
   provisioner "remote-exec" {
     inline = [
@@ -246,12 +265,6 @@ resource "aws_instance" "jenkins" {
       "sudo systemctl enable containerd.service",
       "sudo service docker restart",
     ]
-  }
-  connection {
-    type        = "ssh"
-    host        = self.public_ip
-    user        = "ec2-user"
-    private_key = file("~/.ssh/id_rsa")
   }
   tags = {
     Name = "Jenkins_From_Terraform"
