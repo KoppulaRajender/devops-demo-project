@@ -14,18 +14,6 @@ provider "aws" {
   region  = "us-east-1"
 }
 
-# Creating a New Key
-resource "aws_key_pair" "Key-Pair" {
-
-  # Name of the Key
-  key_name = "MyKey"
-
-  # Adding the SSH authorized key !
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC5UORh0HB1Cf/XIs/lO8lB1LmOuGfKBP/+UR6Fe6iITxscQvt674h3fjQHGkBdLTWnYYfQC50nXi8Kn9e7nbJw2jEmYT/LBj5srmdxpFrme6CWmdETCF6PFn7Nv4Oj1CMFUNdd1FHX1oZkzgSWK98ykFD0l/f3MO4h3kEODnxzfEFDA4uGVmEtB8NN2GFbjzZu6BY8XIZ+5vQsvVlVNgxpCS+o93s8jAgpQz8JZEUfXu516KTBMcHtpI+tRKR9F7HAvwYk5GDFp4Lo7xxFYU78275S3N1xYCsz48X5nZHObqBKSROBXtMwVXR44ojdwYTGSRhZpjQ0nrraXOVT/1he36y4l3WzaDkrYet2if56Kp9ZfCjFFpkgEB401mHWITr/8WAqOiHYfKy8clTEbM40PPhN4xE1ltqOm9ReKG6m4S4tQxAjgrM18CHXMCNaFWfo70B9faJbmGD/wEqAc/KiKSLHJ6ytWxsp8UwasHM68VaWtMGhZJTuGZVM0NpHjJs= rajender.koppula@aquasec.com"
-
-}
-
-
 # Creating a VPC!
 resource "aws_vpc" "demo" {
 
@@ -188,11 +176,11 @@ resource "aws_security_group" "MYAPP-SG" {
 
   # Created an inbound rule for MyApp
   ingress {
-    description     = "MyApp Access"
-    from_port       = 8080
-    to_port         = 8080
-    protocol        = "tcp"
-    security_groups = [aws_security_group.JENKINS-SG.id]
+    description = "MyApp Access"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   # Created an inbound rule for SSH
@@ -215,6 +203,17 @@ resource "aws_security_group" "MYAPP-SG" {
   }
 }
 
+# Creating a New Key
+resource "aws_key_pair" "Key-Pair" {
+
+  # Name of the Key
+  key_name = "MyKey"
+
+  # Adding the SSH authorized key !
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC5UORh0HB1Cf/XIs/lO8lB1LmOuGfKBP/+UR6Fe6iITxscQvt674h3fjQHGkBdLTWnYYfQC50nXi8Kn9e7nbJw2jEmYT/LBj5srmdxpFrme6CWmdETCF6PFn7Nv4Oj1CMFUNdd1FHX1oZkzgSWK98ykFD0l/f3MO4h3kEODnxzfEFDA4uGVmEtB8NN2GFbjzZu6BY8XIZ+5vQsvVlVNgxpCS+o93s8jAgpQz8JZEUfXu516KTBMcHtpI+tRKR9F7HAvwYk5GDFp4Lo7xxFYU78275S3N1xYCsz48X5nZHObqBKSROBXtMwVXR44ojdwYTGSRhZpjQ0nrraXOVT/1he36y4l3WzaDkrYet2if56Kp9ZfCjFFpkgEB401mHWITr/8WAqOiHYfKy8clTEbM40PPhN4xE1ltqOm9ReKG6m4S4tQxAjgrM18CHXMCNaFWfo70B9faJbmGD/wEqAc/KiKSLHJ6ytWxsp8UwasHM68VaWtMGhZJTuGZVM0NpHjJs= rajender.koppula@aquasec.com"
+
+}
+
 # Creating an AWS instance for the Jenkins!
 resource "aws_instance" "jenkins" {
 
@@ -224,8 +223,8 @@ resource "aws_instance" "jenkins" {
     aws_security_group.JENKINS-SG
   ]
 
-  ami           = "ami-0742b4e673072066f" 
-  # amazoon-linux
+  ami = "ami-0001378efdafd5401"
+  # centos
   instance_type = "t2.micro"
   subnet_id     = aws_subnet.subnet1.id
 
@@ -239,31 +238,30 @@ resource "aws_instance" "jenkins" {
   connection {
     type        = "ssh"
     host        = self.public_ip
-    user        = "ec2-user"
+    user        = "centos"
     private_key = file("~/.ssh/id_rsa")
   }
 
   provisioner "remote-exec" {
     inline = [
-      "sudo amazon-linux-extras install -y  epel",
-      "sudo yum install wget ",
       "sudo yum update -y",
+      "sudo yum install wget java-1.8.0-openjdk-devel git python3 python3-pip maven sudo yum install -y yum-utils -y",
+      "python3 -m pip install --upgrade pip",
+      "yes | sudo pip3 install ansible",
       "sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo",
+      "sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
       "sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key",
       "sudo yum update -y",
-      "sudo yum install jenkins -y",
-      "sudo yum install java-1.8.0-openjdk-devel git python3 python3-pip maven -y",
-      "python3 -m pip install --upgrade pip",
+      "sudo yum install jenkins docker-ce docker-ce-cli containerd.io -y",
       "sudo systemctl daemon-reload",
       "sudo systemctl start jenkins",
-      "yes | sudo pip3 install ansible",
-      "sudo amazon-linux-extras install docker -y",
-      "sudo service docker start",
-      "sudo usermod -aG docker $USER",
-      "sudo usermod -aG docker jenkins",
       "sudo systemctl enable docker.service",
       "sudo systemctl enable containerd.service",
       "sudo service docker restart",
+      "sudo groupadd docker",
+      "sudo usermod -aG docker $USER",
+      "sudo usermod -aG docker jenkins",
+      "newgrp docker"
     ]
   }
   tags = {
@@ -279,7 +277,7 @@ resource "aws_instance" "MyApp" {
   ]
 
   # i.e. MyApp Installed!
-  ami           = "ami-0742b4e673072066f"
+  ami           = "ami-0001378efdafd5401"
   instance_type = "t2.micro"
   subnet_id     = aws_subnet.subnet1.id
 
